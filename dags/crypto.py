@@ -38,9 +38,9 @@ def crypto_pull_rates():
         """ Insert article to article table """
         rows_to_insert.append((r['symbol'], float(r['quote']['USD']['price']),
                                mktime(datetime.now().timetuple())))
-        errors = client.insert_rows(
-            table, rows_to_insert)  # API request
-        logging.error(errors)
+    errors = client.insert_rows(
+        table, rows_to_insert)  # API request
+    logging.error(errors)
 
 
 dag = DAG('crypto', description='Pull crypto rates from coinmarketcap.com',
