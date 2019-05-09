@@ -33,20 +33,19 @@ def crypto_pull_rates():
         response = session.get(url, params=parameters)
         data = json.loads(response.text)
         logging.info(response.text)
+        rows_to_insert = []
         for index in data['data']:
             r = data['data'][index]
             """ Insert article to article table """
-            try:
-                rows_to_insert = [
-                    (r['symbol'], r['quote']['USD']['price'],
-                     mktime(datetime.now().timetuple()))
-                ]
-                errors = client.insert_rows(
-                    table, rows_to_insert)  # API request
-                logging.error(errors)
-            except Exception as e:
-                logging.error("Exception insert rates:" + str(e))
-                pass
+            rows_to_insert.append((r['symbol'], r['quote']['USD']['price'],
+                                   mktime(datetime.now().timetuple())))
+        try:
+            errors = client.insert_rows(
+                table, rows_to_insert)  # API request
+            logging.error(errors)
+        except Exception as e:
+            logging.error("Exception insert rates:" + str(e))
+            pass
     except (ConnectionError, Timeout, TooManyRedirects) as e:
         logging.error(e)
 
