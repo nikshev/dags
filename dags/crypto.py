@@ -1,6 +1,7 @@
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import Variable
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
@@ -48,8 +49,9 @@ dag = DAG('crypto', description='Pull crypto rates from coinmarketcap.com',
           start_date=datetime(2019, 5, 9),
           catchup=False)
 
-
+start_operator = DummyOperator(task_id='start')
+end_operator = DummyOperator(task_id='end')
 crypto_pull_rates_operator = PythonOperator(
     task_id='crypto_pull_rates', python_callable=crypto_pull_rates, dag=dag)
 
-crypto_pull_rates_operator
+start_operator >> crypto_pull_rates_operator >> end_operator
