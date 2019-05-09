@@ -53,6 +53,7 @@ def crypto_pull_rates():
 
 dag = DAG('crypto', description='Pull crypto rates from coinmarketcap.com',
           schedule_interval='*/1 * * * *',
+          start_date=datetime(2019, 5, 9),
           catchup=False)
 
 
