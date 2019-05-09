@@ -4,7 +4,6 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.models import Variable
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
-from airflow.hooks import BigQueryHook
 from google.cloud import bigquery
 from time import mktime
 import json
@@ -53,7 +52,7 @@ def crypto_pull_rates():
 
 
 dag = DAG('crypto', description='Pull crypto rates from coinmarketcap.com',
-          schedule_interval='*/5 * * * *',
+          schedule_interval='*/1 * * * *',
           email=['nikshev81@gmail.com'],
           email_on_failure=True,
           catchup=False)
