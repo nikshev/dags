@@ -14,4 +14,4 @@ steps:
       - "-d"
       - "-r"
       - "plugins"
-  - "gs://${_GCS_BUCKET}/plugins"
+      - "gs://${_GCS_BUCKET}/plugins"
