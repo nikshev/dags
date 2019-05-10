@@ -62,7 +62,7 @@ crypto_pull_rates_operator = PythonOperator(
     task_id='crypto_pull_rates', python_callable=crypto_pull_rates, dag=dag)
 
 
-''' BTC 5min BigQueryOperator '''
+''' BTC 5  min BigQueryOperator '''
 btc_five_minutes_operator = BigQueryOperator(
     task_id='bq_btc_five_minutes_operator',
     use_legacy_sql=False,
@@ -84,7 +84,129 @@ btc_five_minutes_operator = BigQueryOperator(
     ''',    destination_dataset_table='composer-236006.crypto.ohlc5m',
     dag=dag)
 
+''' BTC 15 min BigQueryOperator '''
+btc_fifteen_minutes_operator = BigQueryOperator(
+    task_id='bq_btc_fifteen_minutes_operator',
+    use_legacy_sql=False,
+    write_disposition='WRITE_TRUNCATE',
+    allow_large_results=True,
+    bql='''
+    SELECT 
+        TIMESTAMP_SECONDS(900 * DIV(UNIX_SECONDS(created_at) + 450, 900)) as timestamp,
+        symbol,
+        ARRAY_AGG(price ORDER BY created_at LIMIT 1)[SAFE_OFFSET(0)] open,
+        MAX(price) high,
+        MIN(price) low,
+        ARRAY_AGG(price ORDER BY created_at DESC LIMIT 1)[SAFE_OFFSET(0)] close
+    FROM `composer-236006.crypto.ticks`
+    WHERE symbol ='BTC'
+    GROUP BY symbol, timestamp
+    ORDER BY symbol, timestamp DESC
+    LIMIT 5
+    ''',    destination_dataset_table='composer-236006.crypto.ohlc15m',
+    dag=dag)
+
+''' BTC 30 min BigQueryOperator '''
+btc_thirty_minutes_operator = BigQueryOperator(
+    task_id='bq_btc_thirty_minutes_operator',
+    use_legacy_sql=False,
+    write_disposition='WRITE_TRUNCATE',
+    allow_large_results=True,
+    bql='''
+    SELECT 
+        TIMESTAMP_SECONDS(1800 * DIV(UNIX_SECONDS(created_at) + 450, 1800)) as timestamp,
+        symbol,
+        ARRAY_AGG(price ORDER BY created_at LIMIT 1)[SAFE_OFFSET(0)] open,
+        MAX(price) high,
+        MIN(price) low,
+        ARRAY_AGG(price ORDER BY created_at DESC LIMIT 1)[SAFE_OFFSET(0)] close
+    FROM `composer-236006.crypto.ticks`
+    WHERE symbol ='BTC'
+    GROUP BY symbol, timestamp
+    ORDER BY symbol, timestamp DESC
+    LIMIT 5
+    ''',    destination_dataset_table='composer-236006.crypto.ohlc30m',
+    dag=dag)
+
+''' BTC 1 hour BigQueryOperator '''
+btc_one_hour_operator = BigQueryOperator(
+    task_id='bq_btc_one_hour_operator',
+    use_legacy_sql=False,
+    write_disposition='WRITE_TRUNCATE',
+    allow_large_results=True,
+    bql='''
+    SELECT 
+        TIMESTAMP_SECONDS(3600 * DIV(UNIX_SECONDS(created_at) + 450, 3600)) as timestamp,
+        symbol,
+        ARRAY_AGG(price ORDER BY created_at LIMIT 1)[SAFE_OFFSET(0)] open,
+        MAX(price) high,
+        MIN(price) low,
+        ARRAY_AGG(price ORDER BY created_at DESC LIMIT 1)[SAFE_OFFSET(0)] close
+    FROM `composer-236006.crypto.ticks`
+    WHERE symbol ='BTC'
+    GROUP BY symbol, timestamp
+    ORDER BY symbol, timestamp DESC
+    LIMIT 5
+    ''',    destination_dataset_table='composer-236006.crypto.ohlc1h',
+    dag=dag)
+
+''' BTC 4 hour BigQueryOperator '''
+btc_four_hour_operator = BigQueryOperator(
+    task_id='bq_btc_four_hour_operator',
+    use_legacy_sql=False,
+    write_disposition='WRITE_TRUNCATE',
+    allow_large_results=True,
+    bql='''
+    SELECT 
+        TIMESTAMP_SECONDS(14400 * DIV(UNIX_SECONDS(created_at) + 450, 14400)) as timestamp,
+        symbol,
+        ARRAY_AGG(price ORDER BY created_at LIMIT 1)[SAFE_OFFSET(0)] open,
+        MAX(price) high,
+        MIN(price) low,
+        ARRAY_AGG(price ORDER BY created_at DESC LIMIT 1)[SAFE_OFFSET(0)] close
+    FROM `composer-236006.crypto.ticks`
+    WHERE symbol ='BTC'
+    GROUP BY symbol, timestamp
+    ORDER BY symbol, timestamp DESC
+    LIMIT 5
+    ''',    destination_dataset_table='composer-236006.crypto.ohlc4h',
+    dag=dag)
+
+''' BTC 1 day BigQueryOperator '''
+btc_daily_operator = BigQueryOperator(
+    task_id='bq_btc_daily_operator',
+    use_legacy_sql=False,
+    write_disposition='WRITE_TRUNCATE',
+    allow_large_results=True,
+    bql='''
+    SELECT 
+        TIMESTAMP_SECONDS(86400 * DIV(UNIX_SECONDS(created_at) + 450, 86400)) as timestamp,
+        symbol,
+        ARRAY_AGG(price ORDER BY created_at LIMIT 1)[SAFE_OFFSET(0)] open,
+        MAX(price) high,
+        MIN(price) low,
+        ARRAY_AGG(price ORDER BY created_at DESC LIMIT 1)[SAFE_OFFSET(0)] close
+    FROM `composer-236006.crypto.ticks`
+    WHERE symbol ='BTC'
+    GROUP BY symbol, timestamp
+    ORDER BY symbol, timestamp DESC
+    LIMIT 5
+    ''',    destination_dataset_table='composer-236006.crypto.ohlc1d',
+    dag=dag)
+
 
 crypto_pull_rates_operator.set_upstream(start_operator)
+
 btc_five_minutes_operator.set_upstream(crypto_pull_rates_operator)
+btc_fifteen_minutes_operator.set_upstream(crypto_pull_rates_operator)
+btc_thirty_minutes_operator.set_upstream(crypto_pull_rates_operator)
+btc_one_hour_operator.set_upstream(crypto_pull_rates_operator)
+btc_four_hour_operator.set_upstream(crypto_pull_rates_operator)
+btc_daily_operator.set_upstream(crypto_pull_rates_operator)
+
 end_operator.set_upstream(btc_five_minutes_operator)
+end_operator.set_upstream(btc_fifteen_minutes_operator)
+end_operator.set_upstream(btc_thirty_minutes_operator)
+end_operator.set_upstream(btc_one_hour_operator)
+end_operator.set_upstream(btc_four_hour_operator)
+end_operator.set_upstream(btc_daily_operator)
