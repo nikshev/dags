@@ -19,7 +19,7 @@ def btc_five_minutes_rc():
     query_job = bq.query(query)
     data = query_job.result()
     rows = list(data)
-    print(rows)
+    logging.info(rows)
 
 
 def crypto_pull_rates():
