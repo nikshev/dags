@@ -56,7 +56,7 @@ def crypto_pull_rates():
         "fields": {
             "rows": len(rows_to_insert)
         }}]
-    influx.write_points(json.dumps(m))
+    influx.write_points(m)
 
 
 dag = DAG('crypto', description='Pull crypto rates from coinmarketcap.com',
