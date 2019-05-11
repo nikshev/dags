@@ -25,7 +25,7 @@ def btc_five_minutes_rc():
 
     # Set row count to influxdb
     m = [{
-        "measurement": "ohlc5m_rows",
+        "measurement": "ohlc_rc",
         "tags": {
             "host": "airflow"
         },
