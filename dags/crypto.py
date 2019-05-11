@@ -14,12 +14,24 @@ import logging
 
 
 def btc_five_minutes_rc():
+    influx = InfluxDBClient(Variable.get("influx_host"),
+                            Variable.get("influx_port"), Variable.get("influx_user"), Variable.get("influx_password"), Variable.get("influx_db"))
     bq = bigquery.Client()
     query = """SELECT COUNT(1) FROM `composer-236006.crypto.ohlc5m`"""
     query_job = bq.query(query)
     data = query_job.result()
     rows = list(data)
-    logging.info(rows)
+
+    # Set row count to influxdb
+    m = [{
+        "measurement": "ohlc5m_rows",
+        "tags": {
+            "host": "airflow"
+        },
+        "fields": {
+            "rows": len(int(rows[0][0][0]))
+        }}]
+    influx.write_points(m)
 
 
 def crypto_pull_rates():
