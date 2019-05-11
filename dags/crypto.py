@@ -48,17 +48,15 @@ def crypto_pull_rates():
     logging.error(errors)
 
     # Set row count to influxdb
-    m = {
-        "measurment": "crypto_rows",
+    m = [{
+        "measurement": "crypto_rows",
         "tags": {
             "host": "airflow"
         },
-        "time": mktime(datetime.now().timetuple()),
         "fields": {
             "rows": len(rows_to_insert)
-        }}
-    print(json.dumps(m))
-    # client.write_points(json.dumps(m))
+        }}]
+    client.write_points(json.dumps(m))
 
 
 dag = DAG('crypto', description='Pull crypto rates from coinmarketcap.com',
