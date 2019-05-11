@@ -14,7 +14,7 @@ import logging
 
 
 def crypto_pull_rates():
-    client = InfluxDBClient(Variable.get("influx_host"),
+    influx = InfluxDBClient(Variable.get("influx_host"),
                             Variable.get("influx_port"), Variable.get("influx_user"), Variable.get("influx_password"), Variable.get("influx_db"))
     url = Variable.get("crypto_url")
     parameters = {
@@ -56,7 +56,7 @@ def crypto_pull_rates():
         "fields": {
             "rows": len(rows_to_insert)
         }}]
-    client.write_points(json.dumps(m))
+    influx.write_points(json.dumps(m))
 
 
 dag = DAG('crypto', description='Pull crypto rates from coinmarketcap.com',
