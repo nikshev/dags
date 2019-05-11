@@ -20,7 +20,6 @@ def btc_five_minutes_rc():
     query = """SELECT COUNT(1) FROM `composer-236006.crypto.ohlc5m`"""
     query_job = bq.query(query)
     data = query_job.result()
-    rows = data
 
     # Set row count to influxdb
     m = [{
@@ -29,7 +28,7 @@ def btc_five_minutes_rc():
             "host": "airflow"
         },
         "fields": {
-            "rows": len(rows[0][0])
+            "rows": data.total_rows
         }}]
     influx.write_points(m)
 
