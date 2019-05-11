@@ -22,7 +22,6 @@ def btc_five_minutes_rc():
     data = query_job.result()
     itr = iter(data)
     first_row = next(itr)
-    logging.info(first_row[0])
 
     # Set row count to influxdb
     m = [{
@@ -31,9 +30,9 @@ def btc_five_minutes_rc():
             "host": "airflow"
         },
         "fields": {
-            "rows": data.total_rows
+            "rows": first_row[0]
         }}]
-    # influx.write_points(m)
+     influx.write_points(m)
 
 
 def crypto_pull_rates():
