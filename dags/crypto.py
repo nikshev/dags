@@ -8,11 +8,14 @@ from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 from google.cloud import bigquery
 from time import mktime
+from influxdb import InfluxDBClient
 import json
 import logging
 
 
 def crypto_pull_rates():
+    client = InfluxDBClient(Variable.get("influx_host"),
+                            Variable.get("influx_port"), Variable.get("influx_user"), Variable.get("influx_password"), Variable.get("influx_db"))
     url = Variable.get("crypto_url")
     parameters = {
         'id': Variable.get("crypto_id")
@@ -44,6 +47,18 @@ def crypto_pull_rates():
         table, rows_to_insert)  # API request
     logging.error(errors)
 
+    # Set row count to influxdb
+    m = {
+        "measurment": "crypto_rows",
+        "tags": {
+            "host": "airflow"
+        },
+        "time": mktime(datetime.now().timetuple()),
+        "fields": {
+            "rows": len(rows_to_insert)
+        }}
+    client.write_points(json.dumps(m))
+
 
 dag = DAG('crypto', description='Pull crypto rates from coinmarketcap.com',
           schedule_interval='*/2 * * * *',
@@ -66,7 +81,7 @@ crypto_pull_rates_operator = PythonOperator(
 btc_five_minutes_operator = BigQueryOperator(
     task_id='bq_btc_five_minutes_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_TRUNCATE',
+    write_disposition='WRITE_APPEND',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -88,7 +103,7 @@ btc_five_minutes_operator = BigQueryOperator(
 btc_fifteen_minutes_operator = BigQueryOperator(
     task_id='bq_btc_fifteen_minutes_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_TRUNCATE',
+    write_disposition='WRITE_APPEND',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -110,7 +125,7 @@ btc_fifteen_minutes_operator = BigQueryOperator(
 btc_thirty_minutes_operator = BigQueryOperator(
     task_id='bq_btc_thirty_minutes_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_TRUNCATE',
+    write_disposition='WRITE_APPEND',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -132,7 +147,7 @@ btc_thirty_minutes_operator = BigQueryOperator(
 btc_one_hour_operator = BigQueryOperator(
     task_id='bq_btc_one_hour_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_TRUNCATE',
+    write_disposition='WRITE_APPEND',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -154,7 +169,7 @@ btc_one_hour_operator = BigQueryOperator(
 btc_four_hour_operator = BigQueryOperator(
     task_id='bq_btc_four_hour_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_TRUNCATE',
+    write_disposition='WRITE_APPEND',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -176,7 +191,7 @@ btc_four_hour_operator = BigQueryOperator(
 btc_daily_operator = BigQueryOperator(
     task_id='bq_btc_daily_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_TRUNCATE',
+    write_disposition='WRITE_APPEND',
     allow_large_results=True,
     bql='''
     SELECT 
