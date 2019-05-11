@@ -32,7 +32,7 @@ def btc_five_minutes_rc():
         "fields": {
             "rows": first_row[0]
         }}]
-     influx.write_points(m)
+    influx.write_points(m)
 
 
 def crypto_pull_rates():
