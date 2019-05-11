@@ -20,6 +20,9 @@ def btc_five_minutes_rc():
     query = """SELECT COUNT(1) FROM `composer-236006.crypto.ohlc5m`"""
     query_job = bq.query(query)
     data = query_job.result()
+    itr = iter(data)
+    first_row = next(itr)
+    logging.info(first_row)
 
     # Set row count to influxdb
     m = [{
@@ -30,7 +33,7 @@ def btc_five_minutes_rc():
         "fields": {
             "rows": data.total_rows
         }}]
-    influx.write_points(m)
+    # influx.write_points(m)
 
 
 def crypto_pull_rates():
