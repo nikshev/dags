@@ -191,7 +191,6 @@ btc_fifteen_minutes_operator = BigQueryOperator(
     WHERE symbol ='BTC'
     GROUP BY symbol, timestamp
     ORDER BY symbol, timestamp DESC
-    LIMIT 5
     ''',    destination_dataset_table='composer-236006.crypto.ohlc15m',
     dag=dag)
 
