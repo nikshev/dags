@@ -13,29 +13,80 @@ import json
 import logging
 
 
-def btc_five_minutes_rc():
+def btc_rc():
+    ''' BTC five minutes record count'''
     influx = InfluxDBClient(Variable.get("influx_host"),
                             Variable.get("influx_port"), Variable.get("influx_user"), Variable.get("influx_password"), Variable.get("influx_db"))
     bq = bigquery.Client()
+    query = """SELECT COUNT(1) FROM `composer-236006.crypto.ticks`"""
+    query_job = bq.query(query)
+    data = query_job.result()
+    itr = iter(data)
+    first_row = next(itr)
+    ticks = first_row[0]
+
     query = """SELECT COUNT(1) FROM `composer-236006.crypto.ohlc5m`"""
     query_job = bq.query(query)
     data = query_job.result()
     itr = iter(data)
     first_row = next(itr)
+    ohlc5m = first_row[0]
+
+    query = """SELECT COUNT(1) FROM `composer-236006.crypto.ohlc15m`"""
+    query_job = bq.query(query)
+    data = query_job.result()
+    itr = iter(data)
+    first_row = next(itr)
+    ohlc15m = first_row[0]
+
+    query = """SELECT COUNT(1) FROM `composer-236006.crypto.ohlc30m`"""
+    query_job = bq.query(query)
+    data = query_job.result()
+    itr = iter(data)
+    first_row = next(itr)
+    ohlc30m = first_row[0]
+
+    query = """SELECT COUNT(1) FROM `composer-236006.crypto.ohlc1h`"""
+    query_job = bq.query(query)
+    data = query_job.result()
+    itr = iter(data)
+    first_row = next(itr)
+    ohlc1h = first_row[0]
+
+    query = """SELECT COUNT(1) FROM `composer-236006.crypto.ohlc4h`"""
+    query_job = bq.query(query)
+    data = query_job.result()
+    itr = iter(data)
+    first_row = next(itr)
+    ohlc4h = first_row[0]
+
+    query = """SELECT COUNT(1) FROM `composer-236006.crypto.ohlc1d`"""
+    query_job = bq.query(query)
+    data = query_job.result()
+    itr = iter(data)
+    first_row = next(itr)
+    ohlc1d = first_row[0]
 
     # Set row count to influxdb
     m = [{
-        "measurement": "monitor",
+        "measurement": "rates_monitor",
         "tags": {
             "host": "airflow"
         },
         "fields": {
-            "rows": first_row[0]
+            "ticks": ticks,
+            "ohlc5m": ohlc5m,
+            "ohlc15m": ohlc15m,
+            "ohlc30m": ohlc30m,
+            "ohlc1h": ohlc1h,
+            "ohlc4h": ohlc4h,
+            "ohlc1d": ohlc1d,
         }}]
     influx.write_points(m)
 
 
 def crypto_pull_rates():
+    ''' Pull rates from coinmarketcap '''
     influx = InfluxDBClient(Variable.get("influx_host"),
                             Variable.get("influx_port"), Variable.get("influx_user"), Variable.get("influx_password"), Variable.get("influx_db"))
     url = Variable.get("crypto_url")
@@ -86,8 +137,10 @@ dag = DAG('crypto', description='Pull crypto rates from coinmarketcap.com',
           start_date=datetime(2019, 5, 9),
           catchup=False)
 
+
 ''' Start Dummy operator '''
 start_operator = DummyOperator(task_id='start')
+
 
 ''' End Dummy operator '''
 end_operator = DummyOperator(task_id='end')
@@ -120,12 +173,6 @@ btc_five_minutes_operator = BigQueryOperator(
     dag=dag)
 
 
-''' BTC 5 min record count PythonOperator '''
-btc_five_minutes_operator_rc = PythonOperator(
-    task_id='btc_five_minutes_rc', python_callable=btc_five_minutes_rc, dag=dag
-)
-
-
 ''' BTC 15 min BigQueryOperator '''
 btc_fifteen_minutes_operator = BigQueryOperator(
     task_id='bq_btc_fifteen_minutes_operator',
@@ -148,6 +195,7 @@ btc_fifteen_minutes_operator = BigQueryOperator(
     ''',    destination_dataset_table='composer-236006.crypto.ohlc15m',
     dag=dag)
 
+
 ''' BTC 30 min BigQueryOperator '''
 btc_thirty_minutes_operator = BigQueryOperator(
     task_id='bq_btc_thirty_minutes_operator',
@@ -168,6 +216,7 @@ btc_thirty_minutes_operator = BigQueryOperator(
     ORDER BY symbol, timestamp DESC
     ''',    destination_dataset_table='composer-236006.crypto.ohlc30m',
     dag=dag)
+
 
 ''' BTC 1 hour BigQueryOperator '''
 btc_one_hour_operator = BigQueryOperator(
@@ -190,6 +239,7 @@ btc_one_hour_operator = BigQueryOperator(
     ''',    destination_dataset_table='composer-236006.crypto.ohlc1h',
     dag=dag)
 
+
 ''' BTC 4 hour BigQueryOperator '''
 btc_four_hour_operator = BigQueryOperator(
     task_id='bq_btc_four_hour_operator',
@@ -210,6 +260,7 @@ btc_four_hour_operator = BigQueryOperator(
     ORDER BY symbol, timestamp DESC
     ''',    destination_dataset_table='composer-236006.crypto.ohlc4h',
     dag=dag)
+
 
 ''' BTC 1 day BigQueryOperator '''
 btc_daily_operator = BigQueryOperator(
@@ -233,6 +284,12 @@ btc_daily_operator = BigQueryOperator(
     dag=dag)
 
 
+''' BTC  record count PythonOperator '''
+btc_rc_operator = PythonOperator(
+    task_id='btc_rc_operator', python_callable=btc_rc, dag=dag
+)
+
+
 crypto_pull_rates_operator.set_upstream(start_operator)
 
 btc_five_minutes_operator.set_upstream(crypto_pull_rates_operator)
@@ -242,11 +299,11 @@ btc_one_hour_operator.set_upstream(crypto_pull_rates_operator)
 btc_four_hour_operator.set_upstream(crypto_pull_rates_operator)
 btc_daily_operator.set_upstream(crypto_pull_rates_operator)
 
-btc_five_minutes_operator_rc.set_upstream(btc_five_minutes_operator)
+btc_rc_operator.set_upstream(btc_five_minutes_operator)
+btc_rc_operator.set_upstream(btc_fifteen_minutes_operator)
+btc_rc_operator.set_upstream(btc_thirty_minutes_operator)
+btc_rc_operator.set_upstream(btc_one_hour_operator)
+btc_rc_operator.set_upstream(btc_four_hour_operator)
+btc_rc_operator.set_upstream(btc_daily_operator)
 
-end_operator.set_upstream(btc_five_minutes_operator_rc)
-end_operator.set_upstream(btc_fifteen_minutes_operator)
-end_operator.set_upstream(btc_thirty_minutes_operator)
-end_operator.set_upstream(btc_one_hour_operator)
-end_operator.set_upstream(btc_four_hour_operator)
-end_operator.set_upstream(btc_daily_operator)
+end_operator.set_upstream(btc_rc_operator)
