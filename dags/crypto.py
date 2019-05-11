@@ -22,7 +22,7 @@ def btc_five_minutes_rc():
     data = query_job.result()
     itr = iter(data)
     first_row = next(itr)
-    logging.info(first_row)
+    logging.info(first_row[0])
 
     # Set row count to influxdb
     m = [{
