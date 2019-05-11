@@ -13,6 +13,15 @@ import json
 import logging
 
 
+def btc_five_minutes_rc():
+    bq = bigquery.Client()
+    query = """SELECT COUNT(1) FROM `composer-236006.crypto.ohlc5m`"""
+    query_job = bq.query(query)
+    data = query_job.result()
+    rows = list(data)
+    print(rows)
+
+
 def crypto_pull_rates():
     influx = InfluxDBClient(Variable.get("influx_host"),
                             Variable.get("influx_port"), Variable.get("influx_user"), Variable.get("influx_password"), Variable.get("influx_db"))
@@ -80,7 +89,7 @@ crypto_pull_rates_operator = PythonOperator(
 btc_five_minutes_operator = BigQueryOperator(
     task_id='bq_btc_five_minutes_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_APPEND',
+    write_disposition='WRITE_TRUNCATE',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -94,15 +103,21 @@ btc_five_minutes_operator = BigQueryOperator(
     WHERE symbol ='BTC'
     GROUP BY symbol, timestamp
     ORDER BY symbol, timestamp DESC
-    LIMIT 5
     ''',    destination_dataset_table='composer-236006.crypto.ohlc5m',
     dag=dag)
+
+
+''' BTC 5 min record count PythonOperator '''
+btc_five_minutes_operator_rc = PythonOperator(
+    task_id='btc_five_minutes_rc', python_callable=btc_five_minutes_rc, dag=dag
+)
+
 
 ''' BTC 15 min BigQueryOperator '''
 btc_fifteen_minutes_operator = BigQueryOperator(
     task_id='bq_btc_fifteen_minutes_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_APPEND',
+    write_disposition='WRITE_TRUNCATE',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -124,7 +139,7 @@ btc_fifteen_minutes_operator = BigQueryOperator(
 btc_thirty_minutes_operator = BigQueryOperator(
     task_id='bq_btc_thirty_minutes_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_APPEND',
+    write_disposition='WRITE_TRUNCATE',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -138,7 +153,6 @@ btc_thirty_minutes_operator = BigQueryOperator(
     WHERE symbol ='BTC'
     GROUP BY symbol, timestamp
     ORDER BY symbol, timestamp DESC
-    LIMIT 5
     ''',    destination_dataset_table='composer-236006.crypto.ohlc30m',
     dag=dag)
 
@@ -146,7 +160,7 @@ btc_thirty_minutes_operator = BigQueryOperator(
 btc_one_hour_operator = BigQueryOperator(
     task_id='bq_btc_one_hour_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_APPEND',
+    write_disposition='WRITE_TRUNCATE',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -160,7 +174,6 @@ btc_one_hour_operator = BigQueryOperator(
     WHERE symbol ='BTC'
     GROUP BY symbol, timestamp
     ORDER BY symbol, timestamp DESC
-    LIMIT 5
     ''',    destination_dataset_table='composer-236006.crypto.ohlc1h',
     dag=dag)
 
@@ -168,7 +181,7 @@ btc_one_hour_operator = BigQueryOperator(
 btc_four_hour_operator = BigQueryOperator(
     task_id='bq_btc_four_hour_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_APPEND',
+    write_disposition='WRITE_TRUNCATE',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -182,7 +195,6 @@ btc_four_hour_operator = BigQueryOperator(
     WHERE symbol ='BTC'
     GROUP BY symbol, timestamp
     ORDER BY symbol, timestamp DESC
-    LIMIT 5
     ''',    destination_dataset_table='composer-236006.crypto.ohlc4h',
     dag=dag)
 
@@ -190,7 +202,7 @@ btc_four_hour_operator = BigQueryOperator(
 btc_daily_operator = BigQueryOperator(
     task_id='bq_btc_daily_operator',
     use_legacy_sql=False,
-    write_disposition='WRITE_APPEND',
+    write_disposition='WRITE_TRUNCATE',
     allow_large_results=True,
     bql='''
     SELECT 
@@ -204,7 +216,6 @@ btc_daily_operator = BigQueryOperator(
     WHERE symbol ='BTC'
     GROUP BY symbol, timestamp
     ORDER BY symbol, timestamp DESC
-    LIMIT 5
     ''',    destination_dataset_table='composer-236006.crypto.ohlc1d',
     dag=dag)
 
@@ -218,7 +229,9 @@ btc_one_hour_operator.set_upstream(crypto_pull_rates_operator)
 btc_four_hour_operator.set_upstream(crypto_pull_rates_operator)
 btc_daily_operator.set_upstream(crypto_pull_rates_operator)
 
-end_operator.set_upstream(btc_five_minutes_operator)
+btc_five_minutes_operator_rc.set_upstream(btc_five_minutes_operator)
+
+end_operator.set_upstream(btc_five_minutes_operator_rc)
 end_operator.set_upstream(btc_fifteen_minutes_operator)
 end_operator.set_upstream(btc_thirty_minutes_operator)
 end_operator.set_upstream(btc_one_hour_operator)
