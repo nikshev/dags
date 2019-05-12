@@ -18,7 +18,7 @@ args = {
 dag = DAG(
     dag_id='Data_bricks', 
     default_args=args,
-    schedule_interval='@daily')
+    schedule_interval='@hourly')
 
 new_cluster = {
     'spark_version': '4.0.x-scala2.11',
