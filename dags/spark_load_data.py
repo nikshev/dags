@@ -32,7 +32,7 @@ dag = DAG(
 #cluster = {'existing_cluster_id': 'airflow-test'}
 
 notebook_task_params = {
-    'existing_cluster_id': 'airflow-test',
+    'existing_cluster_id': '0508-130010-films3',
     'notebook_task': {
         'notebook_path': '/Users/perepe4a@gmail.com/spark-load-data',
     },
