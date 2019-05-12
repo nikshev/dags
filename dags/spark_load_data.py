@@ -52,11 +52,11 @@ spark_daily_calculations = DatabricksSubmitRunOperator(
 
 
 ''' Start Dummy operator '''
-start_operator = DummyOperator(task_id='start')
+start_operator = DummyOperator(task_id='start', dag=dag)
 
 
 ''' End Dummy operator '''
-end_operator = DummyOperator(task_id='end')
+end_operator = DummyOperator(task_id='end', dag=dag)
 
 
 start_operator >> spark_load_data >> spark_daily_calculations >> end_operator
