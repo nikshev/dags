@@ -16,7 +16,7 @@ args = {
 }
 
 dag = DAG(
-    dag_id='Data_bricks', 
+    dag_id='Databricks_spark', 
     default_args=args,
     schedule_interval='@hourly')
 
