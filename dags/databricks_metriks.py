@@ -38,7 +38,7 @@ args = {
 }
 
 dag = DAG(
-    dag_id='Databricks_spark', 
+    dag_id='Databricks_metriks', 
     default_args=args,
     schedule_interval='*/5 * * * *') 
 
