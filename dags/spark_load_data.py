@@ -22,8 +22,19 @@ dag = DAG(
     default_args=args,
     schedule_interval='@hourly')
 
+new_cluster = {
+    'spark_version': '4.0.x-scala2.11',
+    'node_type_id': 'i3.xlarge',
+    'aws_attributes': {'availability': 'ON_DEMAND',
+                       'zone_id': "eu-west-1c",
+                       'instance_profile_arn': 'arn:aws:iam::948458241037:instance-profile/role-ec2-s3'},
+    'num_workers': 1
+}
+
+
+    
 notebook_spark_load_data_params = {
-    'existing_cluster_id': '0508-130010-films3',
+    'new_cluster': new_cluster,
     'notebook_task': {
         'notebook_path': '/Users/perepe4a@gmail.com/spark-load-data',
     },
@@ -38,7 +49,7 @@ spark_load_data = DatabricksSubmitRunOperator(
 
 
 notebook_spark_daily_calculations_params = {
-    'existing_cluster_id': '0508-130010-films3',
+    'new_cluster': new_cluster,
     'notebook_task': {
         'notebook_path': '/Users/perepe4a@gmail.com/spark-calculate-data',
     },
