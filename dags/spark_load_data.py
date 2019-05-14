@@ -32,8 +32,9 @@ dag = DAG(
 new_cluster = {
     'spark_version': '4.0.x-scala2.11',
     'node_type_id': 'i3.xlarge',
-    'aws_attributes': {'availability': 'ON_DEMAND',
+    'aws_attributes': {'availability': 'ON_SPOT',
                        'zone_id': "eu-west-1c",
+                       'spot_bid_price_percent': 30,
                        'instance_profile_arn': 'arn:aws:iam::948458241037:instance-profile/role-ec2-s3'},
     'num_workers': 1
 }
