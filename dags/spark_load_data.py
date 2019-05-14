@@ -34,11 +34,18 @@ dag = DAG(
 
 new_cluster = {
     'spark_version': '4.0.x-scala2.11',
-    'node_type_id': 'i3.xlarge',
+    "node_type_id": "m4.large",
+    "driver_node_type_id": "m4.large",
+    "spark_env_vars": {
+        "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+    },
     'aws_attributes': {'availability': 'ON_SPOT',
                        'zone_id': "eu-west-1c",
                        'spot_bid_price_percent': 30,
-                       'instance_profile_arn': 'arn:aws:iam::948458241037:instance-profile/role-ec2-s3'},
+                       'instance_profile_arn': 'arn:aws:iam::948458241037:instance-profile/role-ec2-s3',
+                       "ebs_volume_type": "GENERAL_PURPOSE_SSD",
+                       "ebs_volume_count": 1,
+                       "ebs_volume_size": 100},
     'num_workers': 1
 }
 
