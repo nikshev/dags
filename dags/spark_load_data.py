@@ -15,12 +15,15 @@ import logging
 
 
 def x_com_pull(**context):
-    run_id = context['ti'].xcom_pull(task_ids='run_spark_load_data_to_aws')
+    ti = context['ti']
+    logging.log(level=20,msg=ti)
+    run_id = ti.xcom_pull(task_ids='run_spark_load_data_to_aws')
     logging.log(level=20,msg=run_id)
     
 
 args = {
     'owner': 'airflow',
+    'provide_context':True,
     'start_date': airflow.utils.dates.days_ago(2)
 }
 
