@@ -9,8 +9,15 @@ Created on Wed May  8 14:30:17 2019
 import airflow
 from airflow import DAG
 from airflow.contrib.operators.databricks_operator import DatabricksSubmitRunOperator
+from airflow.operators.python_operator import PythonOperator
 from airflow.operators.dummy_operator import DummyOperator
+import logging
 
+
+def x_com_pull(**context):
+    run_id = context['ti'].xcom_pull(task_ids='run_spark_load_data_to_aws')
+    logging.log(run_id)
+    
 
 args = {
     'owner': 'airflow',
@@ -69,5 +76,9 @@ start_operator = DummyOperator(task_id='start', dag=dag)
 ''' End Dummy operator '''
 end_operator = DummyOperator(task_id='end', dag=dag)
 
+x_xom_operator = PythonOperator(
+    task_id='x_xom_operator', python_callable=x_com_pull, provide_context=True, dag=dag
+)
 
-start_operator >> spark_load_data >> spark_daily_calculations >> end_operator
+
+start_operator >> spark_load_data >> spark_daily_calculations >> x_xom_operator >> end_operator
