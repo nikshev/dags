@@ -63,9 +63,10 @@ notebook_spark_load_data_params = {
 '''Load data to AWS''' 
 spark_load_data = DatabricksSubmitRunOperator(
     task_id='run_spark_load_data_to_aws',
+    new_cluster=new_cluster,
+    notebook_task={'notebook_path': '/Users/perepe4a@gmail.com/spark-load-data'},
     do_xcom_push=True,
-    dag=dag,
-    json=notebook_spark_load_data_params)
+    dag=dag)
 
 
 notebook_spark_daily_calculations_params = {
