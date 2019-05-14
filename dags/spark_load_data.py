@@ -15,7 +15,7 @@ import logging
 
 
 def x_com_pull(**context):
-    ti = context['ti']
+    ti = context['task_instance']
     logging.log(level=20,msg=ti)
     run_id = ti.xcom_pull(key='run_id', task_ids=['run_spark_load_data_to_aws'])
     logging.log(level=20,msg=run_id)
