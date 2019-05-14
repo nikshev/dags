@@ -61,7 +61,7 @@ notebook_spark_load_data_params = {
 
 '''Load data to AWS''' 
 spark_load_data = DatabricksSubmitRunOperator(
-    task_id='run_spark_load_data_to_aws',
+    run_name='run_spark_load_data_to_aws',
     do_xcom_push=True,
     dag=dag,
     json=notebook_spark_load_data_params)
@@ -76,7 +76,7 @@ notebook_spark_daily_calculations_params = {
 
 '''Load data to AWS''' 
 spark_daily_calculations = DatabricksSubmitRunOperator(
-    task_id='run_spark_daily_calculations',
+    run_name='run_spark_daily_calculations',
     do_xcom_push=True,
     dag=dag,
     json=notebook_spark_daily_calculations_params)
@@ -90,7 +90,7 @@ start_operator = DummyOperator(task_id='start', dag=dag)
 end_operator = DummyOperator(task_id='end', dag=dag)
 
 x_xom_operator = PythonOperator(
-    task_id='x_xom_operator', python_callable=x_com_pull, provide_context=True, dag=dag
+    task_id='x_com_operator', python_callable=x_com_pull, provide_context=True, dag=dag
 )
 
 
